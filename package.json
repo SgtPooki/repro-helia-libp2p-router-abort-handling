@@ -12,18 +12,21 @@
     "dep-check": "aegir dep-check",
     "lint": "aegir lint",
     "lint:fix": "aegir lint --fix",
-    "test": "aegir build && aegir test --bail=false",
-    "build": "aegir build"
+    "test": "aegir build && cross-env DEBUG='helia*,helia*:trace,libp2p*,libp2p*:trace' aegir test",
+    "build": "aegir build",
+    "start": "vite dev"
   },
   "author": "",
   "license": "ISC",
   "devDependencies": {
     "aegir": "^45.1.4",
+    "cross-env": "^7.0.3",
     "ipfsd-ctl": "^15.0.2",
     "kubo": "^0.34.1",
     "kubo-rpc-client": "^5.1.0",
     "polka": "^0.5.2",
-    "sinon": "^20.0.0"
+    "sinon": "^20.0.0",
+    "vite": "^6.3.2"
   },
   "dependencies": {
     "@chainsafe/libp2p-noise": "^16.1.2",

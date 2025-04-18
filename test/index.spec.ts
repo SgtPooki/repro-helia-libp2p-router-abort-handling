@@ -1,11 +1,11 @@
 /* eslint-env mocha */
-import { expect } from 'aegir/chai'
-import { runRepro } from '../src/index.js'
-import { getHeliaAndLibp2p, type GetHeliaOptions } from '../src/get-helia.js'
-import { CID } from 'multiformats/cid'
-import type { Helia } from 'helia'
 import { logger } from '@libp2p/logger'
+import { expect } from 'aegir/chai'
+import { type CID } from 'multiformats/cid'
 import sinon from 'sinon'
+import { getHeliaAndLibp2p, type GetHeliaOptions } from '../src/get-helia.js'
+import { runRepro } from '../src/index.js'
+import type { Helia } from 'helia'
 
 const log = logger('helia:repro:test')
 
@@ -22,11 +22,6 @@ const testCases: TestCases[] = [
       // enableBitswap: false,
       // enableLibp2pRouting: false
     },
-    timeout: 15000
-  },
-  {
-    name: 'with libp2p routing and bitswap',
-    options: {},
     timeout: 1000
   },
   {
@@ -47,7 +42,7 @@ const testCases: TestCases[] = [
       enableBitswap: false
     },
     timeout: 1000
-  },
+  }
 ]
 describe('repro', function () {
   let timeout: NodeJS.Timeout
@@ -86,14 +81,15 @@ describe('repro', function () {
       const contentRoutingFindProvidersStub = sinon.stub(libp2p.contentRouting, 'findProviders')
       const fakeFindProviders = async function * (cid: CID, options: any) {
         log('libp2p.contentRouting.findProviders', cid, options)
-        // yield* contentRoutingFindProvidersStub.wrappedMethod(cid, options)
+        // controller.abort()
+        yield * contentRoutingFindProvidersStub.wrappedMethod(cid, options)
       }
       contentRoutingFindProvidersStub.callsFake(fakeFindProviders)
 
-      contentRoutingFindProvidersStub.onFirstCall().callsFake(async function * (cid: CID, options: any) {
-        log('libp2p.contentRouting.findProviders, first call, aborting signal', cid, options)
+      contentRoutingFindProvidersStub.onSecondCall().callsFake(async function * (cid: CID, options: any) {
+        log('libp2p.contentRouting.findProviders, second call, aborting signal', cid, options)
         controller.abort()
-        yield* contentRoutingFindProvidersStub.wrappedMethod(cid, options)
+        yield * contentRoutingFindProvidersStub.wrappedMethod(cid, options)
       })
 
       timeout = setTimeout(() => {

@@ -1,14 +1,13 @@
-import { CID } from 'multiformats/cid'
 // import { getHelia, type GetHeliaOptions } from './get-helia.js'
 import { type Helia } from 'helia'
 import { walkPath as exporterWalk, type UnixFSEntry } from 'ipfs-unixfs-exporter'
+import { CID } from 'multiformats/cid'
 
 /**
  * @throws {AbortError}
  */
-export async function runRepro ({path, helia, signal}: {path: string, helia: Helia, signal: AbortSignal}): Promise<Array<UnixFSEntry>> {
-
-  const results: Array<UnixFSEntry> = []
+export async function runRepro ({ path, helia, signal }: { path: string, helia: Helia, signal: AbortSignal }): Promise<UnixFSEntry[]> {
+  const results: UnixFSEntry[] = []
 
   for await (const entry of exporterWalk(path, helia.blockstore, { signal })) {
     console.log('entry', entry)
@@ -17,3 +16,5 @@ export async function runRepro ({path, helia, signal}: {path: string, helia: Hel
 
   return results
 }
+
+export { getHeliaAndLibp2p } from './get-helia.js'

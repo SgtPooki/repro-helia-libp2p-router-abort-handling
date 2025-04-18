@@ -7,6 +7,8 @@ import polka from 'polka'
 /** @type {import('aegir').PartialOptions} */
 const options = {
   test: {
+    build: false,
+    bail: false,
     async before () {
       const node = await createNode({
         type: 'kubo',

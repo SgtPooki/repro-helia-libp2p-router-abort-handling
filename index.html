@@ -1,0 +1,45 @@
+<!DOCTYPE html>
+<html>
+  <head>
+    <title>Repro</title>
+  </head>
+  <body>
+    <script type="module">
+      // @ts-check
+      import { runRepro } from './dist/src/index.js'
+      import { getHeliaAndLibp2p } from './dist/src/get-helia.js'
+
+      const url = new URL(window.location.href)
+      const gateway = url.searchParams.get('gateway')
+      const router = gateway
+      if (gateway == null) {
+        throw new Error('gateway is required')
+      }
+      const delay = url.searchParams.get('delay')
+      if (delay == null) {
+        throw new Error('delay is required')
+      }
+
+      const { helia, libp2p } = await getHeliaAndLibp2p({
+        gateways: [gateway],
+        routers: [router],
+        dnsJsonResolvers: {},
+        enableRecursiveGateways: true,
+        enableGatewayProviders: true,
+        enableBitswap: true,
+        enableLibp2pRouting: true,
+        useLibp2pDefaultTransports: true,
+      })
+
+      const signal = AbortSignal.timeout(parseInt(delay, 10))
+
+      await runRepro({
+        // see https://explore.ipld.io/#/explore/QmdmQXB2mzChmMeKY47C43LxUdg1NDJ5MWcKMKxDu7RgQm/1%20-%20Barrel%20-%20Part%201/1%20-%20Barrel%20-%20Part%201.png
+        // path: 'QmawceGscqN4o8Y8Fv26UUmB454kn2bnkXV5tEQYc4jBd6',
+        path: 'QmdmQXB2mzChmMeKY47C43LxUdg1NDJ5MWcKMKxDu7RgQm/1 - Barrel - Part 1/1 - Barrel - Part 1.png',
+        helia,
+        signal
+      })
+    </script>
+  </body>
+</html>

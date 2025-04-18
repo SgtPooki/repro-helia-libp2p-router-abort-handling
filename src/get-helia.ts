@@ -15,9 +15,9 @@ import { webTransport } from '@libp2p/webtransport'
 import { dns, type DNSResolvers } from '@multiformats/dns'
 import { dnsJsonOverHttps } from '@multiformats/dns/resolvers'
 import { createHelia, type DefaultLibp2pServices, type Helia, type HeliaLibp2p, type Routing } from 'helia'
+import { libp2pDefaults as heliaLibp2pDefaults } from 'helia'
 import { createLibp2p, type Libp2p, type Libp2pOptions } from 'libp2p'
 import * as libp2pInfo from 'libp2p/version'
-import { libp2pDefaults as heliaLibp2pDefaults } from 'helia'
 
 const logger = prefixLogger('helia:repro')
 
@@ -117,7 +117,7 @@ export async function libp2pDefaults (config: Libp2pDefaultsOptions): Promise<Li
   }
   if (config.enableWebTransport) {
     // if (!config.useLibp2pDefaultTransports) {
-      transports.push(webTransport())
+    transports.push(webTransport())
     // }
     filterAddrs.push('webtransport')
   }
