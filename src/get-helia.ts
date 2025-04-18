@@ -14,7 +14,7 @@ import { webSockets } from '@libp2p/websockets'
 import { webTransport } from '@libp2p/webtransport'
 import { dns, type DNSResolvers } from '@multiformats/dns'
 import { dnsJsonOverHttps } from '@multiformats/dns/resolvers'
-import { createHelia, type Helia, type Routing } from 'helia'
+import { createHelia, type DefaultLibp2pServices, type Helia, type HeliaLibp2p, type Routing } from 'helia'
 import { createLibp2p, type Libp2p, type Libp2pOptions } from 'libp2p'
 import * as libp2pInfo from 'libp2p/version'
 import { libp2pDefaults as heliaLibp2pDefaults } from 'helia'
@@ -34,7 +34,7 @@ export interface GetHeliaOptions {
   useLibp2pDefaultTransports: boolean
 }
 
-export async function getHelia (config: GetHeliaOptions): Promise<Helia> {
+export async function getHeliaAndLibp2p (config: GetHeliaOptions): Promise<{ helia: HeliaLibp2p<Libp2p<any>>, libp2p: Libp2p<any> }> {
   const log = logger.forComponent('get-helia')
 
   // Start by adding the config routers as delegated routers
@@ -81,13 +81,15 @@ export async function getHelia (config: GetHeliaOptions): Promise<Helia> {
     routers.push(libp2pRouting(libp2p))
   }
 
-  return createHelia({
+  const helia = await createHelia({
     logger,
     libp2p,
     routers,
     blockBrokers,
     dns: dnsConfig
   })
+
+  return { helia, libp2p }
 }
 
 type Libp2pDefaultsOptions = Pick<GetHeliaOptions, 'routers' | 'enableWss' | 'enableWebTransport' | 'enableGatewayProviders' | 'useLibp2pDefaultTransports'>

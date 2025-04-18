@@ -22,7 +22,8 @@
     "ipfsd-ctl": "^15.0.2",
     "kubo": "^0.34.1",
     "kubo-rpc-client": "^5.1.0",
-    "polka": "^0.5.2"
+    "polka": "^0.5.2",
+    "sinon": "^20.0.0"
   },
   "dependencies": {
     "@chainsafe/libp2p-noise": "^16.1.2",
