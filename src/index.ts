@@ -1,7 +1,6 @@
 // import { getHelia, type GetHeliaOptions } from './get-helia.js'
 import { type Helia } from 'helia'
 import { walkPath as exporterWalk, type UnixFSEntry } from 'ipfs-unixfs-exporter'
-import { CID } from 'multiformats/cid'
 
 /**
  * @throws {AbortError}

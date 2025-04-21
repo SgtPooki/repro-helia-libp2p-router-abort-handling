@@ -4,10 +4,25 @@
     <title>Repro</title>
   </head>
   <body>
+    <button id="run">Run Repro in browser main thread</button>
+    <button id="run-sw" disabled aria-disabled="true">Run Repro in service worker</button>
     <script type="module">
       // @ts-check
-      import { runRepro } from './dist/src/index.js'
-      import { getHeliaAndLibp2p } from './dist/src/get-helia.js'
+      import { runRepro, getHeliaAndLibp2p } from './dist/index.js'
+
+      const runButton = document.getElementById('run')
+      const runSwButton = document.getElementById('run-sw')
+
+      if (runButton == null) {
+        throw new Error('run button not found')
+      }
+      if (runSwButton == null) {
+        throw new Error('run sw button not found')
+      }
+
+      if (navigator.serviceWorker == null) {
+        throw new Error('service worker not supported')
+      }
 
       const url = new URL(window.location.href)
       const gateway = url.searchParams.get('gateway')
@@ -20,26 +35,100 @@
         throw new Error('delay is required')
       }
 
-      const { helia, libp2p } = await getHeliaAndLibp2p({
-        gateways: [gateway],
-        routers: [router],
-        dnsJsonResolvers: {},
-        enableRecursiveGateways: true,
-        enableGatewayProviders: true,
-        enableBitswap: true,
-        enableLibp2pRouting: true,
-        useLibp2pDefaultTransports: true,
+      async function registerServiceWorker () {
+        try {
+          const swRegistration = await navigator.serviceWorker.register(new URL('/dist/sw.js', import.meta.url))
+
+          // If the service worker is already active, resolve immediately
+          if (swRegistration.active) {
+            console.log('service worker already active')
+            return swRegistration
+          }
+
+          // Otherwise wait for the new worker to activate
+          return new Promise((resolve, reject) => {
+            swRegistration.addEventListener('updatefound', () => {
+              const newWorker = swRegistration.installing
+              if (!newWorker) {
+                reject(new Error('No installing worker found'))
+                return
+              }
+
+              newWorker.addEventListener('statechange', () => {
+                if (newWorker.state === 'activated') {
+                  console.log('service worker activated')
+                  resolve(swRegistration)
+                }
+              })
+            })
+          })
+        } catch (error) {
+          console.error('Service worker registration failed:', error)
+          throw error
+        }
+      }
+
+      runButton.addEventListener('click', async () => {
+        const { helia, libp2p } = await getHeliaAndLibp2p({
+          gateways: [gateway],
+          routers: [router],
+          dnsJsonResolvers: {},
+          enableRecursiveGateways: true,
+          enableGatewayProviders: true,
+          enableBitswap: true,
+          enableLibp2pRouting: true,
+          useLibp2pDefaultTransports: true,
+          enableWss: true,
+          enableWebTransport: false,
+        })
+
+        const signal = AbortSignal.timeout(parseInt(delay, 10))
+
+        try {
+          const results = await runRepro({
+          // see https://explore.ipld.io/#/explore/QmdmQXB2mzChmMeKY47C43LxUdg1NDJ5MWcKMKxDu7RgQm/1%20-%20Barrel%20-%20Part%201/1%20-%20Barrel%20-%20Part%201.png
+          // path: 'QmawceGscqN4o8Y8Fv26UUmB454kn2bnkXV5tEQYc4jBd6',
+          path: 'QmdmQXB2mzChmMeKY47C43LxUdg1NDJ5MWcKMKxDu7RgQm/1 - Barrel - Part 1/1 - Barrel - Part 1.png',
+          helia,
+          signal
+          })
+          console.log('results', results)
+          if (results.error == null || !results.error.message.includes('abort')) {
+            alert('Expected an abort error from the service worker but did not receive one.')
+          } else {
+            console.log('The request was aborted as expected.')
+          }
+        } catch (error) {
+          console.error('error', error)
+          alert('Expected an abort error from the service worker but got a different error.')
+        }
       })
 
-      const signal = AbortSignal.timeout(parseInt(delay, 10))
+      // Wrap the service worker registration in a try-catch
+      try {
+        await registerServiceWorker()
+        runSwButton.removeAttribute('disabled')
+        runSwButton.removeAttribute('aria-disabled')
+        runSwButton.addEventListener('click', async () => {
+          console.log('running in service worker')
+          console.log('sending request to service worker')
+          // send a fetch request to the service worker which should run the repro case.
+          const response = await fetch(`?sw=true&delay=${delay}&gateway=${gateway}&router=${router}`, {
+            method: 'POST',
+            // signal: AbortSignal.timeout(parseInt(delay, 10))
+          })
+          const results = await response.json()
+          if (results.error == null || !results.error.message.includes('abort')) {
+            alert('Expected an abort error from the service worker but did not receive one.')
+          } else {
+            console.log('The request was aborted as expected.')
+          }
+        })
+      } catch (error) {
+        console.error('Service worker registration failed:', error)
+        alert('Service worker registration failed.')
+      }
 
-      await runRepro({
-        // see https://explore.ipld.io/#/explore/QmdmQXB2mzChmMeKY47C43LxUdg1NDJ5MWcKMKxDu7RgQm/1%20-%20Barrel%20-%20Part%201/1%20-%20Barrel%20-%20Part%201.png
-        // path: 'QmawceGscqN4o8Y8Fv26UUmB454kn2bnkXV5tEQYc4jBd6',
-        path: 'QmdmQXB2mzChmMeKY47C43LxUdg1NDJ5MWcKMKxDu7RgQm/1 - Barrel - Part 1/1 - Barrel - Part 1.png',
-        helia,
-        signal
-      })
     </script>
   </body>
 </html>

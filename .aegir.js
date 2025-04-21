@@ -6,6 +6,13 @@ import polka from 'polka'
 
 /** @type {import('aegir').PartialOptions} */
 const options = {
+  build: {
+    // I want to build the index.js and also the sw.js
+    config: {
+      entryPoints: ['index.js', 'sw.js'],
+      outdir: 'dist'
+    }
+  },
   test: {
     build: false,
     bail: false,
