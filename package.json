@@ -12,7 +12,7 @@
     "dep-check": "aegir dep-check",
     "lint": "aegir lint",
     "lint:fix": "aegir lint --fix",
-    "test": "aegir build && cross-env DEBUG='helia*,helia*:trace,libp2p*,libp2p*:trace' aegir test",
+    "test": "npm run build && cross-env DEBUG='helia*,helia*:trace,libp2p*,libp2p*:trace' aegir test",
     "build": "node build.js",
     "start": "node build.js && npx http-server -p 5173 dist"
   },
