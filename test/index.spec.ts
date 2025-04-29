@@ -19,29 +19,43 @@ const testCases: TestCases[] = [
   {
     name: 'no bitswap nor libp2p routing',
     options: {
-      // enableBitswap: false,
-      // enableLibp2pRouting: false
+      enableBitswap: false,
+      enableLibp2pRouting: false
     },
-    timeout: 1000
+    timeout: 200
   },
   {
     name: 'with libp2p routing and bitswap',
     options: {},
-    timeout: 1000
+    timeout: 200
   },
   {
     name: 'no libp2p routing',
     options: {
       enableLibp2pRouting: false
     },
-    timeout: 1000
+    timeout: 200
   },
   {
     name: 'no bitswap',
     options: {
       enableBitswap: false
     },
-    timeout: 1000
+    timeout: 200
+  },
+  {
+    name: 'no recursive gateways',
+    options: {
+      enableRecursiveGateways: false
+    },
+    timeout: 200
+  },
+  {
+    name: 'no gateway providers',
+    options: {
+      enableGatewayProviders: false
+    },
+    timeout: 200
   }
 ]
 describe('repro', function () {
@@ -52,7 +66,8 @@ describe('repro', function () {
     helia.stop()
   })
   for (const testCase of testCases) {
-    it(`should abort the request and not hang: ${testCase.name}`, async () => {
+    it(`should abort the request and not hang: ${testCase.name}`, async function () {
+      this.timeout(testCase.timeout * 10) // 10x expected timeout for mocha to timeout the test.
       if (process.env.TRUSTLESS_GATEWAY == null) {
         throw new Error('TRUSTLESS_GATEWAY is not set')
       }
@@ -62,8 +77,6 @@ describe('repro', function () {
       const controller = new AbortController()
       const signal = controller.signal
       const { helia: heliaInstance, libp2p } = await getHeliaAndLibp2p({
-        // gateways: [process.env.TRUSTLESS_GATEWAY],
-        // routers: [process.env.TRUSTLESS_GATEWAY],
         gateways: [process.env.PROXY_SERVER],
         routers: [process.env.TRUSTLESS_GATEWAY],
         dnsJsonResolvers: {},
@@ -78,19 +91,19 @@ describe('repro', function () {
       })
       helia = heliaInstance
 
-      const contentRoutingFindProvidersStub = sinon.stub(libp2p.contentRouting, 'findProviders')
-      const fakeFindProviders = async function * (cid: CID, options: any) {
-        log('libp2p.contentRouting.findProviders', cid, options)
-        // controller.abort()
-        yield * contentRoutingFindProvidersStub.wrappedMethod(cid, options)
-      }
-      contentRoutingFindProvidersStub.callsFake(fakeFindProviders)
+      // const contentRoutingFindProvidersStub = sinon.stub(libp2p.contentRouting, 'findProviders')
+      // const fakeFindProviders = async function * (cid: CID, options: any) {
+      //   log('libp2p.contentRouting.findProviders', cid, options)
+      //   // controller.abort()
+      //   yield * contentRoutingFindProvidersStub.wrappedMethod(cid, options)
+      // }
+      // contentRoutingFindProvidersStub.callsFake(fakeFindProviders)
 
-      contentRoutingFindProvidersStub.onSecondCall().callsFake(async function * (cid: CID, options: any) {
-        log('libp2p.contentRouting.findProviders, second call, aborting signal', cid, options)
-        controller.abort()
-        yield * contentRoutingFindProvidersStub.wrappedMethod(cid, options)
-      })
+      // contentRoutingFindProvidersStub.onSecondCall().callsFake(async function * (cid: CID, options: any) {
+      //   log('libp2p.contentRouting.findProviders, second call, aborting signal', cid, options)
+      //   controller.abort()
+      //   yield * contentRoutingFindProvidersStub.wrappedMethod(cid, options)
+      // })
 
       timeout = setTimeout(() => {
         controller.abort()
@@ -105,11 +118,12 @@ describe('repro', function () {
           signal
         })
         log('got result', result)
-        expect(result).to.be.null() // we should never get here.
+        expect(result).to.be.null('Did not respect the abort, or resolved before the abort was triggered') // we should never get here.
       } catch (err: any) {
+        log('got error', err)
         if (err.name === 'AbortError') {
           // expected
-          // throw err
+          expect(true).to.be.true('Abort signal was respected.')
           return
         }
         if (err.errors != null) {
@@ -118,7 +132,7 @@ describe('repro', function () {
             log.error('error in aggregate error:', error)
           }
         }
-        expect(err).to.be.null()
+        expect(err).to.be.null('Received unexpected error.')
       }
     })
   }

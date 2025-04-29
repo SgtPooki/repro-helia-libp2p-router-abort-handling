@@ -30,3 +30,12 @@ const options = {
 }
 
 await build(options)
+
+// build all test files into dist/test
+await build({
+  entryPoints: ['test/index.spec.ts'],
+  outdir: 'dist/test',
+  bundle: true,
+  minify: true,
+  sourcemap: true,
+})

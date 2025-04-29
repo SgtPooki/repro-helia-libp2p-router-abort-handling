@@ -79,18 +79,19 @@ async function swRepro (event: FetchEvent): Promise<Response> {
     // console.log('results', results)
 
     // convert bigints to strings
-    const convertedResults = results.map((result) => {
-      // @ts-expect-error - we are converting bigints to strings
-      result.size = result.size.toString()
-      return result
-    })
+    // const convertedResults = results.map((result) => {
+    //   // @ts-expect-error - we are converting bigints to strings
+    //   result.size = result.size.toString()
+    //   return result
+    // })
 
 
-    return new Response(JSON.stringify(convertedResults), {
-      headers: {
-        'Content-Type': 'application/json'
-      }
-    })
+    // return new Response(JSON.stringify(convertedResults), {
+    //   headers: {
+    //     'Content-Type': 'application/json'
+    //   }
+    // })
+    return results
   } catch (error: any) {
     console.error('error', error)
     return new Response(JSON.stringify({ error: error.message }), {

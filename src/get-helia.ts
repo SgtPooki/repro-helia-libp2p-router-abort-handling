@@ -67,7 +67,6 @@ export async function getHeliaAndLibp2p (config: GetHeliaOptions): Promise<{ hel
     blockBrokers.push(bitswap())
   }
   const libp2pOptions = await libp2pDefaults(config)
-  log('libp2p options are: %o', libp2pOptions)
   libp2pOptions.dns = dnsConfig
   let libp2p: Libp2p
   try {
