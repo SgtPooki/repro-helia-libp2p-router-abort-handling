@@ -14,7 +14,7 @@
     "lint": "aegir lint",
     "lint:fix": "aegir lint --fix",
     "test:debugold": "npm run build && cross-env DEBUG='helia*,helia*:trace,libp2p*,libp2p*:trace' aegir test",
-    "test:debug": "npm run build && cross-env DEBUG='helia*,helia*:trace' aegir test",
+    "test:debug": "npm run build && cross-env DEBUG='helia*,helia*:trace,*delegated-routing-v1-http-api-client*,*delegated-routing-v1-http-api-client*:trace' aegir test",
     "test": "npm run build && aegir test",
     "build": "node build.js",
     "start": "node build.js && npx http-server -p 5173 dist"

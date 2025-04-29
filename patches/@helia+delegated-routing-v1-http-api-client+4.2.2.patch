@@ -1,0 +1,12 @@
+diff --git a/node_modules/@helia/delegated-routing-v1-http-api-client/dist/src/client.js b/node_modules/@helia/delegated-routing-v1-http-api-client/dist/src/client.js
+index d5b118d..6d4e42d 100644
+--- a/node_modules/@helia/delegated-routing-v1-http-api-client/dist/src/client.js
++++ b/node_modules/@helia/delegated-routing-v1-http-api-client/dist/src/client.js
+@@ -144,6 +144,7 @@ export class DefaultDelegatedRoutingV1HttpApiClient {
+         }
+         catch (err) {
+             log.error('getProviders errored:', err);
++            throw err;
+         }
+         finally {
+             signal.clear();

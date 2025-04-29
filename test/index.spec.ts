@@ -18,20 +18,27 @@ const testCases: TestCases[] = [
     name: 'libp2p routing=false, bitswap=false',
     options: {
       enableBitswap: false,
-      enableLibp2pRouting: false
+      enableLibp2pRouting: false,
+      // enableRecursiveGateways: false,
+      // enableGatewayProviders: false
     },
     timeout: 200
   },
   {
     name: 'libp2p routing=true, bitswap=true',
-    options: {},
+    options: {
+      // enableRecursiveGateways: false,
+      // enableGatewayProviders: false
+    },
     timeout: 200
   },
   {
     name: 'libp2p routing=false, bitswap=true',
     options: {
       enableLibp2pRouting: false,
-      enableBitswap: true
+      enableBitswap: true,
+      // enableRecursiveGateways: false,
+      // enableGatewayProviders: false
     },
     timeout: 200
   },
@@ -39,7 +46,9 @@ const testCases: TestCases[] = [
     name: 'libp2p routing=true, bitswap=false',
     options: {
       enableLibp2pRouting: true,
-      enableBitswap: false
+      enableBitswap: false,
+      // enableRecursiveGateways: false,
+      // enableGatewayProviders: false
     },
     timeout: 200
   }
