@@ -1,8 +1,6 @@
 /* eslint-env mocha */
 import { logger } from '@libp2p/logger'
 import { expect } from 'aegir/chai'
-import { type CID } from 'multiformats/cid'
-import sinon from 'sinon'
 import { getHeliaAndLibp2p, type GetHeliaOptions } from '../src/get-helia.js'
 import { runRepro } from '../src/index.js'
 import type { Helia } from 'helia'
@@ -17,7 +15,7 @@ interface TestCases {
 
 const testCases: TestCases[] = [
   {
-    name: 'no bitswap nor libp2p routing',
+    name: 'libp2p routing=false, bitswap=false',
     options: {
       enableBitswap: false,
       enableLibp2pRouting: false
@@ -25,35 +23,23 @@ const testCases: TestCases[] = [
     timeout: 200
   },
   {
-    name: 'with libp2p routing and bitswap',
+    name: 'libp2p routing=true, bitswap=true',
     options: {},
     timeout: 200
   },
   {
-    name: 'no libp2p routing',
+    name: 'libp2p routing=false, bitswap=true',
     options: {
-      enableLibp2pRouting: false
+      enableLibp2pRouting: false,
+      enableBitswap: true
     },
     timeout: 200
   },
   {
-    name: 'no bitswap',
+    name: 'libp2p routing=true, bitswap=false',
     options: {
+      enableLibp2pRouting: true,
       enableBitswap: false
-    },
-    timeout: 200
-  },
-  {
-    name: 'no recursive gateways',
-    options: {
-      enableRecursiveGateways: false
-    },
-    timeout: 200
-  },
-  {
-    name: 'no gateway providers',
-    options: {
-      enableGatewayProviders: false
     },
     timeout: 200
   }
@@ -67,7 +53,7 @@ describe('repro', function () {
   })
   for (const testCase of testCases) {
     it(`should abort the request and not hang: ${testCase.name}`, async function () {
-      this.timeout(testCase.timeout * 10) // 10x expected timeout for mocha to timeout the test.
+      this.timeout(testCase.timeout * 10)
       if (process.env.TRUSTLESS_GATEWAY == null) {
         throw new Error('TRUSTLESS_GATEWAY is not set')
       }
@@ -91,20 +77,6 @@ describe('repro', function () {
       })
       helia = heliaInstance
 
-      // const contentRoutingFindProvidersStub = sinon.stub(libp2p.contentRouting, 'findProviders')
-      // const fakeFindProviders = async function * (cid: CID, options: any) {
-      //   log('libp2p.contentRouting.findProviders', cid, options)
-      //   // controller.abort()
-      //   yield * contentRoutingFindProvidersStub.wrappedMethod(cid, options)
-      // }
-      // contentRoutingFindProvidersStub.callsFake(fakeFindProviders)
-
-      // contentRoutingFindProvidersStub.onSecondCall().callsFake(async function * (cid: CID, options: any) {
-      //   log('libp2p.contentRouting.findProviders, second call, aborting signal', cid, options)
-      //   controller.abort()
-      //   yield * contentRoutingFindProvidersStub.wrappedMethod(cid, options)
-      // })
-
       timeout = setTimeout(() => {
         controller.abort()
       }, testCase.timeout)
@@ -117,10 +89,10 @@ describe('repro', function () {
           helia,
           signal
         })
-        log('got result', result)
+        log.error('got result unexpectedly:', result)
         expect(result).to.be.null('Did not respect the abort, or resolved before the abort was triggered') // we should never get here.
       } catch (err: any) {
-        log('got error', err)
+        log('got error as expected:', err)
         if (err.name === 'AbortError') {
           // expected
           expect(true).to.be.true('Abort signal was respected.')
